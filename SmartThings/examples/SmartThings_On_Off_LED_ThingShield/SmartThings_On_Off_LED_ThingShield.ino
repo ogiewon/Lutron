@@ -1,9 +1,9 @@
 //*****************************************************************************
 /// @file
 /// @brief
-///   Arduino SmartThings Shield Lutron Interface 
+///   Arduino SmartThings ThingShield On/Off with LED Example 
 ///
-///   Revised by Dan Ogorchock on 2024-09-21 to work with the HubDuino "SmartThingsThingShield" Library
+///   Revised by Dan Ogorchock on 2017-02-10 to work with new "SmartThings v2.0" Library
 ///     -Now supports automatic selectic of SoftwareSerial or HardwareSerial constructor 
 ///      depending on the Arduino Model.
 ///     -If using an Arduino UNO R3, be sure to set the ThingShield switch to the D2/D3 position
@@ -42,6 +42,10 @@
 //*****************************************************************************
 #include <SmartThingsThingShield.h>
 
+//*****************************************************************************
+// Pin Definitions    | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+//                    V V V V V V V V V V V V V V V V V V V V V V V V V V V V V
+//*****************************************************************************
 #define PIN_LED         13
 #define PIN_THING_RX    3
 #define PIN_THING_TX    2
@@ -64,17 +68,46 @@ SmartThingsCallout_t messageCallout;    // call out function forward decalaratio
   #endif  
 
 bool isDebugEnabled;    // enable or disable debug in this example
+int stateLED;           // state to track last set value of LED
 
+//*****************************************************************************
+// Local Functions  | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+//                  V V V V V V V V V V V V V V V V V V V V V V V V V V V V V V
+//*****************************************************************************
+void on()
+{
+  stateLED = 1;                 // save state as 1 (on)
+  digitalWrite(PIN_LED, HIGH);  // turn LED on
+  smartthing.shieldSetLED(0, 0, 1);
+  smartthing.send("on");        // send message to cloud
+}
+
+//*****************************************************************************
+void off()
+{
+  stateLED = 0;                 // set state to 0 (off)
+  digitalWrite(PIN_LED, LOW);   // turn LED off
+  smartthing.shieldSetLED(0, 0, 0);
+  smartthing.send("off");       // send message to cloud
+}
+
+//*****************************************************************************
+// API Functions    | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+//                  V V V V V V V V V V V V V V V V V V V V V V V V V V V V V V
+//*****************************************************************************
 void setup()
 {
+  // setup default state of global variables
   isDebugEnabled = true;
-
-  // set the data rate for the Lutron port
-  Serial2.begin(9600);
+  stateLED = 0;                 // matches state of hardware pin set below
+  
+  // setup hardware pins 
+  pinMode(PIN_LED, OUTPUT);     // define PIN_LED as an output
+  digitalWrite(PIN_LED, LOW);   // set value to LOW (off) to match stateLED=0
 
   //Run the SmartThings init() routine to make sure the ThingShield is connected to the ST Hub
   smartthing.init();
- 
+  
   if (isDebugEnabled)
   { // setup debug serial port
     Serial.begin(9600);         // setup serial with a baud rate of 9600
@@ -82,57 +115,17 @@ void setup()
   }
 }
 
-String LutronResponse = "";
-
-void getLutronResponse()
-{
-  char ch = Serial2.read();
-  if (ch == 0x0D)
-  {
-    if (LutronResponse == "") return;
-    smartthing.send(LutronResponse);
-    LutronResponse = "";
-  }
-  else if (ch != '!') LutronResponse += ch;
-}
-
+//*****************************************************************************
 void loop()
 {
+  // run smartthing logic
   smartthing.run();
-  if (Serial2.available()>0) getLutronResponse();
 }
 
-void hello()
-{
-  if (isDebugEnabled) Serial.println("Hello from Hubitat");
-  smartthing.shieldSetLED(1, 0, 0);
-  delay(200);
-  smartthing.shieldSetLED(0, 1, 0);
-  delay(200);
-  smartthing.shieldSetLED(0, 0, 1);
-  delay(200);
-  smartthing.shieldSetLED(1, 1, 0);
-  delay(200);
-  smartthing.shieldSetLED(1, 1, 1);
-  delay(200);
-  smartthing.shieldSetLED(1, 0, 1);
-  delay(200);
-  smartthing.shieldSetLED(0, 1, 1);
-  delay(200);
-  smartthing.shieldSetLED(3, 2, 1);
-  delay(200);
-  smartthing.shieldSetLED(1, 2, 3);
-  delay(200);
-  smartthing.shieldSetLED(2, 2, 4);
-  delay(200);
-  smartthing.shieldSetLED(4, 3, 1);
-  delay(200);
-  smartthing.shieldSetLED(0, 0, 0);
-}
-
+//*****************************************************************************
 void messageCallout(String message)
 {
-  if (message == "") return;
+  // if debug is enabled print out the received message
   if (isDebugEnabled)
   {
     Serial.print("Received message: '");
@@ -140,6 +133,15 @@ void messageCallout(String message)
     Serial.println("' ");
   }
 
-  if (message.equals("hello")) hello();
-  else Serial2.println(message);         // send command to Lutron
+  // if message contents equals to 'on' then call on() function
+  // else if message contents equals to 'off' then call off() function
+  if (message.equals("on"))
+  {
+    on();
+  }
+  else if (message.equals("off"))
+  {
+    off();
+  }
 }
+

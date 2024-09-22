@@ -1,15 +1,19 @@
 # Lutron RadioRA 
-SmartThings Lutron RadioRa Integration
+Hubitat Lutron RadioRa Integration
 
-There are three Device Types that you need to install in the IDE -
-  Lutron Shield, 
-  Lutron RA Switch, 
-  Lutron RA Dimmer.
+There are three Hubitat Drivers that you need to installed.
+  "Lutron Shield" 
+  "Lutron RA Switch"
+  "Lutron RA Dimmer"
   
-These need to be in your "My Device Handlers", published.  
+These need to be added to your Hubitat Hub's Drivers section.  
 Edit the device type of your ThingShield device to be Lutron Shield.
 
-There is the Arduino sketch, that installs on Arduino Mega 2560. 
+There is the "Arduino Sketch", that installs on Arduino Mega 2560.
+
+You will also need to add the "SmartThings" folder in this repository to 
+your Arduino Libraries folder on your computer.  This is a new version 
+that is required for use with Hubitat. 
 
 There is the Lutron Gateway SmartApp, that you install in the IDE.
 

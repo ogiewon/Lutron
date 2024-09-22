@@ -10,15 +10,21 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *  Revision History
+ *  2024-09-21    Dan Ogorchock    Updated for use on Hubitat Elevation
+ *
  */
 metadata {
 	definition (name: "Lutron Shield", namespace: "bravenel", author: "Bruce Ravenel") {
-        capability "MusicPlayer"
+        capability "Actuator"
+        
+        attribute "msgRcvd", "String"
         
         command "hello"
-        command "sendMsg"
+        command "sendMsg", ["string"]
 	}
 
+/*  Commented out by Dan Ogorchock as not used on Hubitat Elevation
 	// Simulator metadata
 	simulator {
 	}
@@ -32,6 +38,7 @@ metadata {
 		main "greeting"
 		details (["greeting"])
 	}
+*/
 }
 
 // Parse incoming device messages to generate events
@@ -45,10 +52,18 @@ def parse(String description) {
 
 // Commands sent to the device
 def sendMsg(String s) {
-	zigbee.smartShield(text: s).format()
+	//zigbee.smartShield(text: s).format()  //Modified by Dan Ogorchock for use on Hubitat Elevation
+    sendThingShield(s)
+}
+
+//Added by Dan Ogorchock for use on Hubitat Elevation
+def sendThingShield(String message) {
+    def encodedString = DataType.pack(message, DataType.STRING_CHAR).substring(2)
+	return "he raw 0x${device.deviceNetworkId} 1 0x${device.endpointId} 0x0 {00000a0a" + encodedString + "}"
 }
 
 def hello() {
 	log.debug "Hello World!"
-	zigbee.smartShield(text: "hello").format()
+	//zigbee.smartShield(text: "hello").format()  //Modified by Dan Ogorchock for use on Hubitat Elevation
+    sendThingShield("hello")
 }

@@ -1,11 +1,20 @@
+
+/*
+ *  Revision History
+ *  2024-09-21    Dan Ogorchock    Updated for use on Hubitat Elevation
+ * 
+*/
+
+
 metadata {
         definition (name: "Lutron RA Dimmer", namespace: "smartthings", author: "Bruce Ravenel") {
         capability "Switch"
         capability "Refresh"
         capability "Switch Level"
-        capability "MusicPlayer"
+        capability "Actuator"
+//        capability "MusicPlayer"
     }
-
+/*
 	// simulator metadata
 	simulator {
 	}
@@ -29,6 +38,7 @@ metadata {
 		main(["button"])
 		details(["button", "refresh","levelSliderControl","lValue"])
 	}
+*/
 }
 
 def parse(String description) {
